@@ -44,8 +44,13 @@ async def main() -> None:
     api_key = os.getenv("OPENAI_API_KEY", "sk-JO438PQ5WpZFtR9Gt5tMN119FmD1bG6YDtmczNgGyDIMCHc1")
     model_name = os.getenv("OPENAI_MODEL", "gpt-5")
 
-    # 创建自定义 API 客户端
-    custom_client = AsyncOpenAI(base_url=api_base_url, api_key=api_key)
+    # 创建自定义 API 客户端（增加超时时间）
+    custom_client = AsyncOpenAI(
+        base_url=api_base_url,
+        api_key=api_key,
+        timeout=120.0,  # 120秒超时
+        max_retries=2,  # 最多重试2次
+    )
 
     # 创建自定义模型配置
     custom_model = OpenAIChatCompletionsModel(model=model_name, openai_client=custom_client)
@@ -140,6 +145,8 @@ async def main() -> None:
             continue
 
         print("\n📊 正在分析，请稍候...")
+        print("💭 AI正在理解您的输入...")
+        print("⏱️  预计需要 10-30 秒，请耐心等待...")
 
         try:
             # 直接将用户输入传给Agent，由Agent理解并提取信息
@@ -157,11 +164,16 @@ async def main() -> None:
 请确保数据准确，分析全面。
 """
 
-            # 运行Agent
+            print("🔍 正在调用 GPT-5 查询营养数据...")
+
+            # 运行Agent，增加超时设置和最大轮次
             result = await Runner.run(
                 nutrition_agent,
                 input=agent_input,
+                max_turns=20,  # 增加最大轮次
             )
+
+            print("✅ 分析完成！")
 
             # 获取结构化输出
             analysis: NutritionAnalysis = result.final_output
@@ -209,8 +221,27 @@ async def main() -> None:
             print("\n" + "=" * 60)
 
         except Exception as e:
-            print(f"\n❌ 分析过程中出现错误：{str(e)}")
-            print("请检查输入或稍后重试。")
+            error_msg = str(e)
+            print(f"\n❌ 分析过程中出现错误：{error_msg}")
+
+            # 提供具体的错误建议
+            if "timed out" in error_msg.lower() or "timeout" in error_msg.lower():
+                print("\n💡 超时原因可能是：")
+                print("   1. API 响应较慢，请稍后重试")
+                print("   2. 网络连接不稳定")
+                print("   3. 模型正在处理中，建议等待30秒后重试")
+                print("\n🔄 建议：直接重新输入相同内容即可重试")
+            elif "api" in error_msg.lower() or "connection" in error_msg.lower():
+                print("\n💡 连接问题可能是：")
+                print("   1. API 端点暂时不可用")
+                print("   2. 网络连接中断")
+                print("   3. API 密钥无效")
+                print("\n🔧 建议：检查网络连接，或稍后重试")
+            else:
+                print("\n💡 建议：")
+                print("   1. 检查输入格式（食材名、重量、价格）")
+                print("   2. 确保输入信息完整")
+                print("   3. 稍后重试")
 
 
 if __name__ == "__main__":

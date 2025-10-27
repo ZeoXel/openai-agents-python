@@ -2,6 +2,16 @@
 
 ## 一键运行
 
+### 步骤1：测试 API 连接（可选，但推荐）
+
+```bash
+uv run python examples/nutrition_agent/test_connection.py
+```
+
+如果看到 `✅ 配置正常`，说明 API 连接成功！
+
+### 步骤2：启动主程序
+
 ```bash
 uv run python -m examples.nutrition_agent.main
 ```
@@ -39,13 +49,14 @@ uv run python -m examples.nutrition_agent.main
 
 ### 3. 输入食材信息
 
-按照格式输入：`食材名称 重量 价格`
+**自由输入**：无需严格格式，AI自动理解！
 
 **示例：**
 ```
-> 鸡胸肉 500克 15元
-> 西兰花 300克 6元
-> 鸡蛋 10个(约500克) 8元
+> 鸡胸肉 500克 15元      ✅ 标准格式
+> 辣椒 5元 一斤          ✅ 口语表达
+> 西兰花 300g 6元        ✅ 英文单位
+> 牛肉 50元 1公斤        ✅ 不同单位
 ```
 
 ### 4. 获取分析结果
@@ -92,13 +103,24 @@ uv add openai-agents
 pip install openai-agents
 ```
 
-### Q: 程序卡住不动怎么办？
+### Q: 程序卡住不动或超时怎么办？
 
-A: 检查以下几点：
+A: **超时是正常现象**（GPT-5 处理需要时间）：
+
+**立即解决：**
+1. ⏱️  等待 30 秒后重新输入相同内容
+2. 🔄 不要重启程序，直接重试即可
+3. ✅ 程序已配置 120 秒超时和自动重试
+
+**测试连接：**
+```bash
+uv run python examples/nutrition_agent/test_connection.py
+```
+
+**其他检查：**
 1. 网络连接是否正常
 2. API 端点是否可访问
-3. API 密钥是否有效
-4. 尝试使用 Ctrl+C 中断并重启
+3. 如果持续超时，尝试等待几分钟后重试
 
 ### Q: 如何验证 API 配置？
 
